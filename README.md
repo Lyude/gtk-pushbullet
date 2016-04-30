@@ -5,3 +5,11 @@ It should be noted that as of right now this is mostly a proof of concept, altho
 # Requirements
 - PyGObject
 - [pyPushBullet](https://github.com/Azelphur/pyPushBullet)
+
+# How to launch
+Since this is very early in the development process, there's no way to install this using pip or any other methods yet. For now, you can just run
+```
+./src/client.py
+```
+
+To test it out.
