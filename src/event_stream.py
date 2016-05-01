@@ -90,9 +90,6 @@ def event_cb(data):
         elif push["type"] == "dismissal":
             del notifications[push["notification_id"]]
 
-def push_mirror_cb(push):
-        notification = Notify.Notification.new(push["title"], push["body"])
-
 def event_stream(pb):
     global pushbullet
 
