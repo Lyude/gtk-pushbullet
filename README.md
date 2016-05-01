@@ -7,9 +7,15 @@ It should be noted that as of right now this is mostly a proof of concept, altho
 - [pyPushBullet](https://github.com/Azelphur/pyPushBullet)
 
 # How to launch
-Since this is very early in the development process, there's no way to install this using pip or any other methods yet. For now, you can just run
+First you need to setup your API key. Right now we don't have any option to do this from the program itself, so you have to write your own config file. Simply place a file that looks like this in `~/.config/gtk-pushbullet.conf`:
+```
+[main]
+api_key = o.TlesCPUmApqYTxIMVkpWei5Yof7SYgSp
+```
+
+Then run the client using
 ```
 ./src/client.py
 ```
 
-To test it out.
+Eventually this will be much easier, and you'll have the ability to install this through pip.

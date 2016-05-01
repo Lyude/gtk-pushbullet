@@ -17,9 +17,12 @@
 import gi
 gi.require_version("Notify", "0.7")
 
+from client_config import GtkPushBulletConfig
+
 from gi.repository import Notify, GdkPixbuf
 from pushbullet.pushbullet import PushBullet
 from base64 import b64decode
+import sys
 
 def extract_icon(base64_icon):
     pbl = GdkPixbuf.PixbufLoader()
@@ -42,11 +45,14 @@ def notification_cb(data):
     notification.set_urgency(Notify.Urgency.LOW)
     notification.show()
 
-# TODO: Actually add a configuration file for this
-API_KEY = ""
+config = GtkPushBulletConfig()
+
+if not config.has_option("main", "api_key"):
+    sys.stderr.write("Error: api_key is not set\n")
+    sys.exit(1)
 
 Notify.init('net.lyude.pushbullet.notifications')
-pushbullet = PushBullet(API_KEY)
+pushbullet = PushBullet(config.get("main", "api_key"))
 
 print("Connected, listening for notifications...")
 pushbullet.realtime(notification_cb)
