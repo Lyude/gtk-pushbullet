@@ -40,7 +40,6 @@ if not config.has_option("main", "api_key"):
 Notify.init('net.lyude.pushbullet.notifications')
 pushbullet = PushBullet(config.get("main", "api_key"))
 
-print("Starting GTK thread")
 gtk_thread = GtkThread()
 gtk_thread.start()
 
