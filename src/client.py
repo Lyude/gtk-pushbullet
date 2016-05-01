@@ -31,6 +31,16 @@ class GtkThread(Thread):
     def run(self):
         Gtk.main()
 
+def register_device():
+    if config.has_option("main", "device_iden"):
+        return
+
+    r = pushbullet.addDevice("gtk-pushbullet")
+    config.set("main", "device_iden", r["iden"])
+    config.save()
+
+    print("Registered device 'gtk-pushbullet', iden: " + r["iden"])
+
 config = GtkPushBulletConfig()
 
 if not config.has_option("main", "api_key"):
@@ -39,6 +49,8 @@ if not config.has_option("main", "api_key"):
 
 Notify.init('net.lyude.pushbullet.notifications')
 pushbullet = PushBullet(config.get("main", "api_key"))
+
+register_device()
 
 gtk_thread = GtkThread()
 gtk_thread.start()
