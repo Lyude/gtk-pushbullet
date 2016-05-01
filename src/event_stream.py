@@ -17,19 +17,19 @@
 import gi
 gi.require_version("Notify", "0.7")
 
+import threading
+
 from gi.repository import Notify, GdkPixbuf
 from pushbullet.pushbullet import PushBullet
 from base64 import b64decode
-
-notifications = dict()
-pushbullet = None
+from threading import Thread
 
 class PushBulletNotification():
     def dismiss(self, notification):
-        pushbullet.dismissEphemeral(self.notification_id,
-                                    self.notification_tag,
-                                    self.package_name,
-                                    self.source_user_iden)
+        self.pushbullet.dismissEphemeral(self.notification_id,
+                                         self.notification_tag,
+                                         self.package_name,
+                                         self.source_user_iden)
         self.notification_id = None
         self.notification_tag = None
         self.package_name = None
@@ -39,7 +39,8 @@ class PushBulletNotification():
     def update(title, body):
         self.notification.update(title, body)
 
-    def __init__(self, push):
+    def __init__(self, push, pushbullet):
+        self.pushbullet = pushbullet
         self.notification = Notify.Notification.new(push["title"], push["body"])
 
         self.notification_id  = push["notification_id"]
@@ -75,23 +76,28 @@ class PushBulletNotification():
         if self.notification is not None:
             self.notification.close()
 
-def event_cb(data):
-    print(str(data))
+class EventStreamThread(Thread):
+    def __init__(self, pushbullet, config):
+        super().__init__()
 
-    if data["type"] == "push":
-        push = data["push"]
+        self.pushbullet = pushbullet
+        self.config = config
 
-        if push["type"] == "mirror":
-            if push["notification_id"] in notifications:
-                pass # We need to handle this later
-            else:
-                notifications[push["notification_id"]] = PushBulletNotification(push)
+        self.notifications = dict()
 
-        elif push["type"] == "dismissal":
-            del notifications[push["notification_id"]]
+    def __event_cb(self, data):
+        if data["type"] == "push":
+            push = data["push"]
 
-def event_stream(pb):
-    global pushbullet
+            if push["type"] == "mirror":
+                if push["notification_id"] in self.notifications:
+                    pass # We need to handle this later
+                else:
+                    self.notifications[push["notification_id"]] = \
+                            PushBulletNotification(push, self.pushbullet)
 
-    pushbullet = pb
-    pushbullet.realtime(event_cb)
+            elif push["type"] == "dismissal":
+                del self.notifications[push["notification_id"]]
+
+    def run(self):
+        self.pushbullet.realtime(self.__event_cb)

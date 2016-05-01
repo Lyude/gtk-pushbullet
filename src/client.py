@@ -19,7 +19,7 @@ gi.require_version("Notify", "0.7")
 gi.require_version("Gtk",    "3.0")
 
 from client_config import GtkPushBulletConfig
-from event_stream import event_stream
+from event_stream import EventStreamThread
 
 from gi.repository import Notify, GdkPixbuf, Gtk
 from pushbullet.pushbullet import PushBullet
@@ -56,4 +56,5 @@ gtk_thread = GtkThread()
 gtk_thread.start()
 
 print("Connected, listening for notifications...")
-event_stream(pushbullet)
+event_stream_thread = EventStreamThread(pushbullet, config)
+event_stream_thread.run()
