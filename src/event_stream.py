@@ -25,7 +25,7 @@ notifications = dict()
 pushbullet = None
 
 class PushBulletNotification():
-    def dismiss(obj, notification, self):
+    def dismiss(self, notification):
         pushbullet.dismissEphemeral(self.notification_id,
                                     self.notification_tag,
                                     self.package_name,
@@ -59,7 +59,7 @@ class PushBulletNotification():
             self.notification.set_icon_from_pixbuf(pbl.get_pixbuf())
 
         if push["dismissible"] == True:
-            self.notification.connect_after("closed", self.dismiss, self)
+            self.notification.connect_after("closed", self.dismiss)
 
         self.notification.set_timeout(0)
         self.notification.set_urgency(Notify.Urgency.LOW)
