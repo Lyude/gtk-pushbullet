@@ -30,3 +30,6 @@ class GtkPushBulletConfig(ConfigParser):
 
         if os.path.exists(self.path):
             self.read(self.path)
+
+    def save(self):
+        self.write(open(self.path, "w+"))
