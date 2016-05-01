@@ -26,10 +26,7 @@ from pushbullet.pushbullet import PushBullet
 from base64 import b64decode
 from threading import Thread
 import sys
-
-class GtkThread(Thread):
-    def run(self):
-        Gtk.main()
+import signal
 
 def register_device():
     if config.has_option("main", "device_iden"):
@@ -52,9 +49,9 @@ pushbullet = PushBullet(config.get("main", "api_key"))
 
 register_device()
 
-gtk_thread = GtkThread()
-gtk_thread.start()
-
 print("Connected, listening for notifications...")
 event_stream_thread = EventStreamThread(pushbullet, config)
-event_stream_thread.run()
+event_stream_thread.start()
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+Gtk.main()
