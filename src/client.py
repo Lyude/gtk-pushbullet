@@ -16,34 +16,20 @@
 
 import gi
 gi.require_version("Notify", "0.7")
+gi.require_version("Gtk",    "3.0")
 
 from client_config import GtkPushBulletConfig
+from event_stream import event_stream
 
-from gi.repository import Notify, GdkPixbuf
+from gi.repository import Notify, GdkPixbuf, Gtk
 from pushbullet.pushbullet import PushBullet
 from base64 import b64decode
+from threading import Thread
 import sys
 
-def extract_icon(base64_icon):
-    pbl = GdkPixbuf.PixbufLoader()
-    pbl.write(bytes(b64decode(base64_icon)))
-    pbl.close()
-
-    return pbl.get_pixbuf()
-
-def notification_cb(data):
-    if data["type"] != "push":
-        return
-
-    push = data["push"]
-    notification = Notify.Notification.new(push["title"], push["body"])
-
-    if push["icon"] is not None:
-        notification.set_icon_from_pixbuf(extract_icon(push["icon"]))
-
-    notification.set_timeout(0)
-    notification.set_urgency(Notify.Urgency.LOW)
-    notification.show()
+class GtkThread(Thread):
+    def run(self):
+        Gtk.main()
 
 config = GtkPushBulletConfig()
 
@@ -54,5 +40,9 @@ if not config.has_option("main", "api_key"):
 Notify.init('net.lyude.pushbullet.notifications')
 pushbullet = PushBullet(config.get("main", "api_key"))
 
+print("Starting GTK thread")
+gtk_thread = GtkThread()
+gtk_thread.start()
+
 print("Connected, listening for notifications...")
-pushbullet.realtime(notification_cb)
+event_stream(pushbullet)
