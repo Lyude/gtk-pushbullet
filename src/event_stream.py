@@ -25,7 +25,12 @@ from base64 import b64decode
 from threading import Thread
 
 class PushBulletNotification():
-    def dismiss(self, notification):
+    def dismiss(self):
+        if self.notification is not None:
+            self.notification.disconnect(self.__dismiss_cb_id)
+            self.notification.close()
+
+    def __dismiss_cb(self, notification):
         self.pushbullet.dismissEphemeral(self.notification_id,
                                          self.notification_tag,
                                          self.package_name,
@@ -60,21 +65,11 @@ class PushBulletNotification():
             self.notification.set_icon_from_pixbuf(pbl.get_pixbuf())
 
         if push["dismissible"] == True:
-            self.notification.connect_after("closed", self.dismiss)
+            self.__dismiss_cb_id = self.notification.connect_after("closed", self.__dismiss_cb)
 
         self.notification.set_timeout(0)
         self.notification.set_urgency(Notify.Urgency.LOW)
         self.notification.show()
-
-    def __del__(self):
-        if self.notification_id is not None:
-            pushbullet.dismissEphemeral(self.notification_id,
-                                        self.notification_tag,
-                                        self.package_name,
-                                        self.source_user_iden)
-
-        if self.notification is not None:
-            self.notification.close()
 
 class EventStreamThread(Thread):
     def __init__(self, pushbullet, config):
@@ -97,7 +92,14 @@ class EventStreamThread(Thread):
                             PushBulletNotification(push, self.pushbullet)
 
             elif push["type"] == "dismissal":
+                try:
+                    notification = self.notifications[push["notification_id"]]
+                except KeyError:
+                    return
+
                 del self.notifications[push["notification_id"]]
+
+                notification.dismiss()
 
     def run(self):
         self.pushbullet.realtime(self.__event_cb)
