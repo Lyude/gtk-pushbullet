@@ -22,21 +22,21 @@ from client_config import GtkPushBulletConfig
 from event_stream import EventStreamThread
 
 from gi.repository import Notify, GdkPixbuf, Gtk
-from pushbullet.pushbullet import PushBullet
+import pushbullet
 from base64 import b64decode
 from threading import Thread
 import sys
 import signal
 
-def register_device():
+def register_device(pb):
     if config.has_option("main", "device_iden"):
         return
 
-    r = pushbullet.addDevice("gtk-pushbullet")
-    config.set("main", "device_iden", r["iden"])
+    d = pushbullet.Device(pb, nickname="gtk-pushbullet")
+    config.set("main", "device_iden", d["iden"])
     config.save()
 
-    print("Registered device 'gtk-pushbullet', iden: " + r["iden"])
+    print("Registered device 'gtk-pushbullet', iden: " + d["iden"])
 
 config = GtkPushBulletConfig()
 
@@ -45,9 +45,9 @@ if not config.has_option("main", "api_key"):
     sys.exit(1)
 
 Notify.init('net.lyude.pushbullet.notifications')
-pushbullet = PushBullet(config.get("main", "api_key"))
+pushbullet = pushbullet.PushBullet(config.get("main", "api_key"))
 
-register_device()
+register_device(pushbullet)
 
 print("Connected, listening for notifications...")
 event_stream_thread = EventStreamThread(pushbullet, config)
